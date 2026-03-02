@@ -8,13 +8,53 @@
  * - Integration with existing stores
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { DynamicTeamVisualizer, AgentConnection } from '../components/DynamicTeamVisualizer';
 import { WorkDisplayPanel } from '../components/WorkDisplayPanel';
 import { InteractionTimeline } from '../components/InteractionTimeline';
 import { useAgentStore } from '../stores/agentStore';
 import { useMessageStore } from '../stores/messageStore';
+import type { Agent } from '../types/agent';
+import type { AgentMessage } from '../types/message';
 import styles from './MainWorkspaceView.module.css';
+
+// 🔧 FIX: 用 memo 包裹，避免父组件渲染时无关联的 Panel 重渲染
+// agent 和 messages 引用稳定时 Panel 不会重渲染
+interface AgentPanelProps {
+  agent: Agent;
+  messages: AgentMessage[];
+  onInteractionRequest: (agentId: string) => void;
+}
+
+const AgentPanel = memo(function AgentPanel({ agent, messages, onInteractionRequest }: AgentPanelProps) {
+  // 过滤该 agent 的消息（在 memo 内部做，避免父组件每次 render 都 filter）
+  const agentMessages = useMemo(
+    () => messages.filter(
+      msg =>
+        msg.sender === agent.id ||
+        msg.receiver === agent.id ||
+        (Array.isArray(msg.receiver) && msg.receiver.includes(agent.id))
+    ),
+    [messages, agent.id]
+  );
+
+  const agentInfo = useMemo(() => ({
+    id: agent.id,
+    name: agent.config.name,
+    role: agent.config.role,
+    currentTask: agent.state.currentTask?.description,
+  }), [agent.id, agent.config.name, agent.config.role, agent.state.currentTask?.description]);
+
+  return (
+    <WorkDisplayPanel
+      agent={agentInfo}
+      status={agent.state.status}
+      currentTask={agent.state.currentTask?.description}
+      messages={agentMessages}
+      onInteractionRequest={onInteractionRequest}
+    />
+  );
+});
 
 export interface MainWorkspaceViewProps {
   /** Additional CSS class name */
@@ -35,8 +75,16 @@ export interface MainWorkspaceViewProps {
  * ```
  */
 export function MainWorkspaceView({ className = '' }: MainWorkspaceViewProps) {
-  const agents = useAgentStore((state) => state.getAllAgents());
-  const messages = useMessageStore((state) => state.getAllMessages());
+  // 🔧 FIX: 直接 select Map，用 useMemo 转数组，避免每次渲染产生新引用
+  const agentsMap = useAgentStore((state) => state.agents);
+  const agents = useMemo(() => Array.from(agentsMap.values()), [agentsMap]);
+
+  const messagesMap = useMessageStore((state) => state.messages);
+  const messages = useMemo(
+    () => Array.from(messagesMap.values()).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime()),
+    [messagesMap]
+  );
+
   const [selectedAgentId, setSelectedAgentId] = useState<string | undefined>();
   const [showConnections, setShowConnections] = useState(true);
 
@@ -132,22 +180,10 @@ export function MainWorkspaceView({ className = '' }: MainWorkspaceViewProps) {
           ) : (
             <div className={styles.workPanelsGrid}>
               {displayAgents.map(agent => (
-                <WorkDisplayPanel
+                <AgentPanel
                   key={agent.id}
-                  agent={{
-                    id: agent.id,
-                    name: agent.config.name,
-                    role: agent.config.role,
-                    currentTask: agent.state.currentTask?.description,
-                  }}
-                  status={agent.state.status}
-                  currentTask={agent.state.currentTask?.description}
-                  messages={messages.filter(
-                    msg =>
-                      msg.sender === agent.id ||
-                      msg.receiver === agent.id ||
-                      (Array.isArray(msg.receiver) && msg.receiver.includes(agent.id))
-                  )}
+                  agent={agent}
+                  messages={messages}
                   onInteractionRequest={handleInteractionRequest}
                 />
               ))}
