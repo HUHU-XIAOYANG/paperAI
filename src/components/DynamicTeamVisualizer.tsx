@@ -82,7 +82,10 @@ export function DynamicTeamVisualizer({
   maxAgents = 50,
   layout = 'circular',
 }: DynamicTeamVisualizerProps) {
-  const agents = useAgentStore((state) => state.getAllAgents());
+  // 🔧 FIX: 直接 select Map，再用 useMemo 转数组
+  // 避免 getAllAgents() 每次返回新引用导致无限循环
+  const agentsMap = useAgentStore((state) => state.agents);
+  const agents = useMemo(() => Array.from(agentsMap.values()), [agentsMap]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [agentNodes, setAgentNodes] = useState<AgentNode[]>([]);
@@ -165,6 +168,8 @@ export function DynamicTeamVisualizer({
   }, [layout, maxAgents]);
 
   // Update agent positions when agents change
+  // 🔧 FIX: 从依赖中移除 calculatePositions（它由 useCallback 保证稳定）
+  // agents 现在由 useMemo 保证只在 Map 真正变化时才是新引用
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -174,7 +179,8 @@ export function DynamicTeamVisualizer({
 
     // Update previous IDs for next render
     previousAgentIdsRef.current = new Set(agents.map(a => a.id));
-  }, [agents, layout, maxAgents, calculatePositions]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agents, layout, maxAgents]);
 
   // Draw visualization on canvas
   useEffect(() => {
