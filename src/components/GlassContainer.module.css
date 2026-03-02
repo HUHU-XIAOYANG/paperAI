@@ -1,0 +1,117 @@
+/**
+ * Glass Container component styles
+ * Implements glass morphism visual effects with customizable parameters
+ */
+
+.glassContainer {
+  position: relative;
+  background: var(--glass-background);
+  backdrop-filter: blur(var(--custom-blur, var(--glass-blur)));
+  -webkit-backdrop-filter: blur(var(--custom-blur, var(--glass-blur)));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: all var(--transition-base);
+}
+
+/* Apply custom opacity if provided */
+.glassContainer[style*="--custom-opacity"] {
+  background: rgba(255, 255, 255, var(--custom-opacity));
+}
+
+[data-theme='dark'] .glassContainer[style*="--custom-opacity"] {
+  background: rgba(30, 30, 30, var(--custom-opacity));
+}
+
+/* Variants */
+.variant-default {
+  background: var(--glass-background);
+}
+
+.variant-light {
+  background: var(--glass-background-light);
+}
+
+.variant-strong {
+  background: var(--glass-background-strong);
+  backdrop-filter: blur(var(--custom-blur, var(--glass-blur-strong)));
+  -webkit-backdrop-filter: blur(var(--custom-blur, var(--glass-blur-strong)));
+  border-color: var(--glass-border-strong);
+  box-shadow: var(--glass-shadow-strong);
+}
+
+/* Border radius */
+.radius-sm {
+  border-radius: var(--radius-sm);
+}
+
+.radius-md {
+  border-radius: var(--radius-md);
+}
+
+.radius-lg {
+  border-radius: var(--radius-lg);
+}
+
+.radius-xl {
+  border-radius: var(--radius-xl);
+}
+
+/* Padding */
+.padding-xs {
+  padding: var(--spacing-xs);
+}
+
+.padding-sm {
+  padding: var(--spacing-sm);
+}
+
+.padding-md {
+  padding: var(--spacing-md);
+}
+
+.padding-lg {
+  padding: var(--spacing-lg);
+}
+
+.padding-xl {
+  padding: var(--spacing-xl);
+}
+
+/* Hover effect */
+.hover:hover {
+  background: var(--glass-background-strong);
+  border-color: var(--glass-border-strong);
+  box-shadow: var(--glass-shadow-strong);
+  transform: translateY(-2px);
+}
+
+.hover:active {
+  transform: translateY(0);
+}
+
+/* Fallback for browsers without backdrop-filter support */
+@supports not (backdrop-filter: blur(10px)) {
+  .glassContainer {
+    background: var(--color-surface);
+  }
+  
+  .variant-light {
+    background: rgba(255, 255, 255, 0.9);
+  }
+  
+  .variant-strong {
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  [data-theme='dark'] .glassContainer {
+    background: rgba(44, 44, 46, 0.9);
+  }
+  
+  [data-theme='dark'] .variant-light {
+    background: rgba(30, 30, 30, 0.85);
+  }
+  
+  [data-theme='dark'] .variant-strong {
+    background: rgba(44, 44, 46, 0.95);
+  }
+}

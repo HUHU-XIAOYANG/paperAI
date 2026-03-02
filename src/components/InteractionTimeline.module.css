@@ -1,0 +1,396 @@
+/**
+ * Interaction Timeline Styles
+ * 
+ * Provides styling for the chronological message timeline with:
+ * - Timeline layout with connectors
+ * - Message cards with glass morphism
+ * - Agent color coding
+ * - Highlight effects
+ * - Expandable content
+ */
+
+.interactionTimeline {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.messageCount {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  padding: 0.25rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyText {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Timeline container */
+.timeline {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.5rem 0;
+}
+
+/* Custom scrollbar */
+.timeline::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timeline::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.timeline::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.timeline::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Message item */
+.messageItem {
+  position: relative;
+  margin-bottom: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.messageItem:hover {
+  transform: translateX(4px);
+}
+
+.messageItem.highlighted {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Timeline connector */
+.connector {
+  position: absolute;
+  left: 1rem;
+  top: 100%;
+  width: 2px;
+  height: 1.5rem;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0.05)
+  );
+}
+
+/* Message card */
+.messageCard {
+  position: relative;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.messageCard:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.messageItem.highlighted .messageCard {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3);
+}
+
+/* Message header */
+.messageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.messageType {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.typeIcon {
+  font-size: 1.25rem;
+}
+
+.typeLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.messageTime {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+
+.relativeTime {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.absoluteTime {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+/* Participants */
+.participants {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sender,
+.receiver {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.arrow {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.agentBadge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--agent-color, rgba(255, 255, 255, 0.1));
+  border: 1px solid var(--agent-color, rgba(255, 255, 255, 0.2));
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.agentBadge.highlightedAgent {
+  background: var(--agent-color, var(--accent-color));
+  border-color: var(--agent-color, var(--accent-color));
+  box-shadow: 0 0 12px var(--agent-color, var(--accent-color));
+  font-weight: 600;
+}
+
+/* Content */
+.contentPreview {
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.truncatedContent {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.fullContent {
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Metadata */
+.metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 0.5rem;
+}
+
+.metadataItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.metadataLabel {
+  color: var(--text-tertiary);
+}
+
+.priorityBadge {
+  padding: 0.125rem 0.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.priorityBadge.priority-high {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.priorityBadge.priority-medium {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.priorityBadge.priority-low {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.requiresResponse {
+  padding: 0.125rem 0.5rem;
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.taskId {
+  font-family: monospace;
+  color: var(--text-secondary);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.tag {
+  padding: 0.125rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text-secondary);
+}
+
+/* Expand indicator */
+.expandIndicator {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-top: 0.5rem;
+  user-select: none;
+}
+
+/* CSS Variables for message types */
+:root {
+  --msg-task: #3b82f6;
+  --msg-submission: #8b5cf6;
+  --msg-request: #f59e0b;
+  --msg-response: #10b981;
+  --msg-discussion: #06b6d4;
+  --msg-revision: #f97316;
+  --msg-approval: #22c55e;
+  --msg-rejection: #ef4444;
+  --msg-default: #6b7280;
+}
+
+/* CSS Variables for agent colors */
+:root {
+  --agent-color-1: #3b82f6;
+  --agent-color-2: #8b5cf6;
+  --agent-color-3: #ec4899;
+  --agent-color-4: #f59e0b;
+  --agent-color-5: #10b981;
+  --agent-color-6: #06b6d4;
+}
+
+/* Dark theme adjustments */
+[data-theme='dark'] .messageCard {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .messageCard:hover {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Light theme adjustments */
+[data-theme='light'] .messageCard {
+  background: rgba(255, 255, 255, 0.5);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .messageCard:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='light'] .title,
+[data-theme='light'] .typeLabel,
+[data-theme='light'] .fullContent {
+  color: var(--text-primary-light);
+}
+
+[data-theme='light'] .relativeTime,
+[data-theme='light'] .truncatedContent {
+  color: var(--text-secondary-light);
+}
+
+[data-theme='light'] .absoluteTime,
+[data-theme='light'] .metadataLabel,
+[data-theme='light'] .expandIndicator {
+  color: var(--text-tertiary-light);
+}

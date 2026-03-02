@@ -1,0 +1,125 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Fault Condition** - Task Object Rendering Error
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate React error #185 when Task objects are rendered
+  - **Scoped PBT Approach**: Scope the property to concrete failing cases - agents with Task objects in currentTask
+  - Test that agents with `state.currentTask` as Task objects cause React error #185 when rendered
+  - Create test agents with Task objects: {id: 'task-1', description: '撰写引言', assignedBy: 'decision-ai', priority: 'high'}
+  - Call `getActiveAgents()` and verify it returns Task objects (not description strings) on unfixed code
+  - Attempt to render the result in a React component (WorkDisplayPanel or test component)
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS with React error #185 "Objects are not valid as a React child"
+  - Document counterexamples found:
+    - Which agents trigger the error
+    - What Task object structure causes the crash
+    - Where in the rendering pipeline the error occurs (getActiveAgents, MainWorkspaceView, WorkDisplayPanel)
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 1.1, 1.2, 1.3_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Undefined Task and Other Properties
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for agents without currentTask (undefined case)
+  - Observe: Agent with currentTask=undefined renders correctly without errors
+  - Observe: Agent properties (id, name, role, avatar) are correctly mapped to AgentInfo
+  - Observe: Message filtering and display work correctly for all agents
+  - Write property-based tests capturing observed behavior patterns:
+    - For all agents with currentTask=undefined, AgentInfo.currentTask should be undefined
+    - For all agents, properties id, name, role, avatar should be correctly mapped
+    - For all agents, message filtering should work correctly
+  - Property-based testing generates many test cases for stronger guarantees
+  - Run tests on UNFIXED code
+  - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on unfixed code
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [ ] 3. Fix for Task object rendering causing React error #185
+
+  - [x] 3.1 Search codebase for incorrect Task object usage
+    - Search for all usages of `agent.state.currentTask` in the codebase
+    - Identify locations where the entire Task object is passed instead of `.description`
+    - Focus on: agentStore.ts, MainWorkspaceView.tsx, WorkDisplayPanel.tsx, DynamicTeamVisualizer.tsx
+    - Document all locations where Task objects are used
+    - _Bug_Condition: agent.state.currentTask !== undefined AND typeof agent.state.currentTask === 'object'_
+    - _Expected_Behavior: Only agent.state.currentTask.description (string) should be passed to UI components_
+    - _Preservation: Agents with currentTask=undefined must continue to work unchanged_
+    - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3, 3.4, 3.5_
+
+  - [x] 3.2 Fix getActiveAgents() in agentStore.ts
+    - Verify current implementation at line 88: `currentTask: agent.state.currentTask?.description`
+    - If already correct, ensure no other code path returns the Task object
+    - If incorrect, change to: `currentTask: agent.state.currentTask?.description`
+    - Ensure the optional chaining `?.` handles undefined cases correctly
+    - Add type assertion if needed to ensure TypeScript enforces string type
+    - _Bug_Condition: getActiveAgents() returns Task object in currentTask field_
+    - _Expected_Behavior: getActiveAgents() returns only description string or undefined_
+    - _Preservation: Undefined currentTask cases must return undefined_
+    - _Requirements: 2.1, 2.2, 2.3_
+
+  - [x] 3.3 Fix MainWorkspaceView.tsx agent prop construction
+    - Review lines 107-115 where agent prop is constructed for WorkDisplayPanel
+    - Verify: `currentTask: agent.state.currentTask?.description` (line 111)
+    - Verify: `currentTask={agent.state.currentTask?.description}` (line 114)
+    - If any location passes `agent.state.currentTask` directly, change to `agent.state.currentTask?.description`
+    - Ensure both the agent object prop and currentTask prop extract description
+    - _Bug_Condition: MainWorkspaceView passes Task object to WorkDisplayPanel_
+    - _Expected_Behavior: MainWorkspaceView passes only description string or undefined_
+    - _Preservation: All other agent properties (id, name, role) must remain unchanged_
+    - _Requirements: 2.1, 2.2, 2.3, 3.2, 3.3, 3.4_
+
+  - [x] 3.4 Fix WorkDisplayPanel.tsx if needed
+    - Review component props interface - should expect `currentTask?: string`
+    - Review rendering at line 177: `<p className={styles.taskDescription}>{currentTask}</p>`
+    - Verify that currentTask prop is typed as string, not Task object
+    - If component receives Task object, add defensive extraction: `currentTask?.description || currentTask`
+    - Ensure no direct rendering of complex objects
+    - _Bug_Condition: WorkDisplayPanel attempts to render Task object_
+    - _Expected_Behavior: WorkDisplayPanel renders only string values_
+    - _Preservation: Undefined currentTask must display gracefully (empty or placeholder)_
+    - _Requirements: 2.1, 2.2, 3.2, 3.3_
+
+  - [x] 3.5 Fix DynamicTeamVisualizer.tsx if needed
+    - Search for any usage of currentTask in agent node rendering
+    - Verify that if currentTask is displayed, only the description string is used
+    - Ensure no Task objects are passed to tooltip or label rendering
+    - _Bug_Condition: DynamicTeamVisualizer renders Task object in agent nodes_
+    - _Expected_Behavior: DynamicTeamVisualizer renders only description strings_
+    - _Preservation: Agent node rendering and connections must remain unchanged_
+    - _Requirements: 2.1, 2.2, 3.3_
+
+  - [x] 3.6 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - Task Description String Rendering
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior (description string rendering)
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - Verify that agents with Task objects now render successfully without React error #185
+    - Verify that `getActiveAgents()` returns description strings, not Task objects
+    - Verify that WorkDisplayPanel renders the description strings correctly
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - _Requirements: 2.1, 2.2, 2.3_
+
+  - [x] 3.7 Verify preservation tests still pass
+    - **Property 2: Preservation** - Undefined Task and Other Properties
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - Verify that agents with currentTask=undefined still work correctly
+    - Verify that all other agent properties (id, name, role, avatar) are unchanged
+    - Verify that message filtering and display still work correctly
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Confirm all tests still pass after fix (no regressions)
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
+
+- [x] 4. Checkpoint - Ensure all tests pass
+  - Run all exploration tests - should pass (bug is fixed)
+  - Run all preservation tests - should pass (no regressions)
+  - Run full test suite to verify no other components are affected
+  - Test manually: click "开始写作" button after filling in all information
+  - Verify no React error #185 occurs
+  - Verify agent information displays correctly in WorkDisplayPanel
+  - Verify agent nodes display correctly in DynamicTeamVisualizer
+  - If any issues arise, ask the user for guidance

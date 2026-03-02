@@ -1,0 +1,230 @@
+/**
+ * Main Workspace View Styles
+ * Implements responsive three-panel layout
+ */
+
+.mainWorkspace {
+  display: grid;
+  grid-template-columns: 300px 1fr 350px;
+  gap: var(--spacing-lg);
+  height: calc(100vh - 120px); /* Account for nav bar */
+  overflow: hidden;
+}
+
+/* Panel Styles */
+.leftPanel,
+.centerPanel,
+.rightPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allow scrolling */
+  overflow: hidden;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) 0;
+  margin-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.panelContent {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+/* Left Panel */
+.leftPanel {
+  min-width: 250px;
+}
+
+.toggleButton {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.toggleButton:hover {
+  background: var(--color-surface-elevated);
+  transform: scale(1.1);
+}
+
+/* Center Panel */
+.centerPanel {
+  min-width: 0; /* Allow grid to shrink */
+}
+
+.agentCount {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.clearButton {
+  margin-left: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-error);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.clearButton:hover {
+  background: var(--color-error);
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+.workPanelsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: var(--spacing-lg);
+  padding: var(--spacing-sm);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--spacing-2xl);
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 64px;
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.5;
+}
+
+.emptyText {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.emptyHint {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* Right Panel */
+.rightPanel {
+  min-width: 300px;
+}
+
+.messageCount {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+/* Scrollbar Styling */
+.panelContent::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.panelContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panelContent::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.panelContent::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .mainWorkspace {
+    grid-template-columns: 280px 1fr 320px;
+  }
+
+  .workPanelsGrid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}
+
+@media (max-width: 1200px) {
+  .mainWorkspace {
+    grid-template-columns: 1fr 320px;
+  }
+
+  .leftPanel {
+    display: none;
+  }
+
+  .workPanelsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .mainWorkspace {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .rightPanel {
+    display: none;
+  }
+
+  .panelContent {
+    max-height: 600px;
+  }
+}
+
+@media (max-width: 600px) {
+  .mainWorkspace {
+    gap: var(--spacing-md);
+  }
+
+  .panelHeader {
+    padding: var(--spacing-sm) 0;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .panelTitle {
+    font-size: 16px;
+  }
+
+  .workPanelsGrid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+}

@@ -1,0 +1,89 @@
+# Implementation Plan
+
+- [x] 1. Write bug condition exploration test
+  - **Property 1: Fault Condition** - Infinite Loop on Component Render
+  - **CRITICAL**: This test MUST FAIL on unfixed code - failure confirms the bug exists
+  - **DO NOT attempt to fix the test or the code when it fails**
+  - **NOTE**: This test encodes the expected behavior - it will validate the fix when it passes after implementation
+  - **GOAL**: Surface counterexamples that demonstrate the infinite loop exists
+  - **Scoped PBT Approach**: Scope the property to concrete failing cases - component renders with agents and useEffect includes calculatePositions in dependencies
+  - Test that rendering DynamicTeamVisualizer with agents does NOT cause "Maximum update depth exceeded" error
+  - Test that useEffect at lines 173-182 runs exactly once per agents change, not infinitely
+  - Test that calculatePositions being in dependency array causes infinite re-renders
+  - Run test on UNFIXED code
+  - **EXPECTED OUTCOME**: Test FAILS with "Maximum update depth exceeded" error (this is correct - it proves the bug exists)
+  - Document counterexamples found:
+    - Initial render with 5 agents triggers infinite loop
+    - Adding agents dynamically triggers infinite loop
+    - Changing layout prop triggers infinite loop
+    - Console shows hundreds of useEffect executions in rapid succession
+  - Mark task complete when test is written, run, and failure is documented
+  - _Requirements: 1.1, 1.2, 1.3_
+
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+  - **Property 2: Preservation** - Position Calculation and Rendering Behavior
+  - **IMPORTANT**: Follow observation-first methodology
+  - Observe behavior on UNFIXED code for non-buggy aspects (position calculation logic, layout algorithms)
+  - Since the unfixed code crashes immediately, use the calculatePositions function in isolation to observe expected behavior
+  - Write property-based tests capturing observed behavior patterns:
+    - Circular layout produces evenly spaced positions around a circle
+    - Hierarchical layout positions agents in rows based on roles
+    - Force layout creates grid-based positioning
+    - New agent detection (isNew flag) works correctly
+    - Container resize triggers position recalculation
+    - Zero agents case returns empty array safely
+  - Property-based testing generates many test cases for stronger guarantees
+  - Run tests on isolated calculatePositions function (not full component due to crash)
+  - **EXPECTED OUTCOME**: Tests PASS on calculatePositions function (confirms baseline behavior to preserve)
+  - Mark task complete when tests are written, run, and passing on isolated function
+  - _Requirements: 3.1, 3.2, 3.3, 3.4_
+
+- [x] 3. Fix for infinite loop in DynamicTeamVisualizer useEffect
+
+  - [x] 3.1 Implement the fix
+    - Open `src/components/DynamicTeamVisualizer.tsx`
+    - Locate the useEffect hook at lines 173-182
+    - Remove `calculatePositions` from the dependency array
+    - Keep `agents`, `layout`, and `maxAgents` as dependencies
+    - The effect should depend on the data that determines when recalculation is needed, not the function itself
+    - Verify the useCallback for calculatePositions has correct dependencies (`layout`, `maxAgents`)
+    - Change dependency array from `[agents, calculatePositions]` to `[agents, layout, maxAgents, calculatePositions]` OR preferably `[agents, layout, maxAgents]` (removing calculatePositions entirely)
+    - _Bug_Condition: isBugCondition(input) where 'calculatePositions' IN input.effectDependencies AND calculatePositionsIsRecreatedOnEveryRender_
+    - _Expected_Behavior: Component renders without infinite loop, useEffect runs exactly once per dependency change_
+    - _Preservation: All position calculation logic, layout algorithms, agent rendering, and responsive behavior remain unchanged_
+    - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3, 3.4_
+
+  - [x] 3.2 Verify bug condition exploration test now passes
+    - **Property 1: Expected Behavior** - No Infinite Loop After Fix
+    - **IMPORTANT**: Re-run the SAME test from task 1 - do NOT write a new test
+    - The test from task 1 encodes the expected behavior
+    - When this test passes, it confirms the expected behavior is satisfied
+    - Run bug condition exploration test from step 1
+    - **EXPECTED OUTCOME**: Test PASSES (confirms bug is fixed)
+    - Verify component renders successfully with agents
+    - Verify no "Maximum update depth exceeded" error occurs
+    - Verify useEffect runs exactly once per agents change
+    - Verify layout and maxAgents changes trigger single recalculation
+    - _Requirements: 2.1, 2.2, 2.3_
+
+  - [x] 3.3 Verify preservation tests still pass
+    - **Property 2: Preservation** - Position Calculation Unchanged
+    - **IMPORTANT**: Re-run the SAME tests from task 2 - do NOT write new tests
+    - Run preservation property tests from step 2
+    - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
+    - Verify circular layout positions match original algorithm
+    - Verify hierarchical layout positions match original algorithm
+    - Verify force layout positions match original algorithm
+    - Verify new agent detection still works correctly
+    - Verify container resize behavior is preserved
+    - Verify edge cases (0 agents, 1 agent, maxAgents limit) work as before
+    - Confirm all tests still pass after fix (no regressions)
+
+- [x] 4. Checkpoint - Ensure all tests pass
+  - Run all tests for DynamicTeamVisualizer component
+  - Verify no infinite loops occur in any scenario
+  - Verify position calculation logic is unchanged
+  - Verify component renders correctly with various agent configurations
+  - Verify layout changes work without crashes
+  - Verify responsive behavior is maintained
+  - If any issues arise, document them and ask the user for guidance

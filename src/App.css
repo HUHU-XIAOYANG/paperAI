@@ -1,0 +1,28 @@
+/**
+ * Main App Styles
+ */
+
+.app {
+  min-height: 100vh;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  padding: var(--spacing-lg);
+}
+
+.app-content {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .app {
+    padding: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .app {
+    padding: var(--spacing-sm);
+  }
+}
